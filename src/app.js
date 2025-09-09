@@ -58,7 +58,7 @@ const app = express();
 //     res.send({firstName: "John", lastName: "Doe" });
 // });
 
-app.get("/user/:userId",(req,res) => {
+app.get("/user/:userId/",(req,res) => {
     //req.params is used to get the parameters from the URL
     //req.body is used to get the data from the request body
     //req.query is used to get the query parameters from the URL
