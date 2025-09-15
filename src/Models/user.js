@@ -1,25 +1,65 @@
 const mongoose = require("mongoose");
 
-const userSchema = mongoose.Schema({
+const userSchema = mongoose.Schema(
+    {
     firstName: {
-        type:String
+        type:String,
+        required: true,
+        minLength: 4,
+        // maxLength: 20 means that the length of the first name should be between 4 and 20
+        maxLength: 20,
     },
     lastName: {
-        type:String
+        type:String,
     },
     email: {
         type: String,
-        unique: true
+        required: true,
+        // unique: true means that the email should be unique
+        unique: true,
+        // lowercase: true means that the email should be lowercase
+        lowercase: true,
+        // trim: true means that the email should be trimmed
+        trim: true
     },
     password: {
-        type: String
+        type: String,
+        required: true,
+
     },
     age: {
-        type: Number
+        type: Number,
+        min: 18,
+        max: 50,
     },
     gender:{
-        type: String
+        type: String,
+        validate(value){
+            if(value !== "male" && value !== "female" && value !== "other"){
+                throw new Error("Gender should be male, female or other");
+            } 
+        }
     },
+    photoUrl: {
+        type: String,
+        default: "https://img.freepik.com/free-vector/user-circles-set_78370-4704.jpg?semt=ais_incoming&w=740&q=80",
+    },
+    about:{
+        type: String,
+        default: "This is the about section of the user"
+    },
+    skills:{
+        // array of strings i.e. Skills of the user
+        type: [String],
+    }
+    // createdAt: {
+    //     type: Date,
+    //     default: Date.now
+    // },
+    // updatedAt: {
+    //     type: Date,
+    //     default: Date.now
+    // },
     // created_at: {
     //     type: Date,
     //     default: Date.now
@@ -28,6 +68,8 @@ const userSchema = mongoose.Schema({
     //     type: Date,
     //     default: Date.now
     // }
+},{
+    Timestamps: true
 });
 
 const User = mongoose.model("user", userSchema);

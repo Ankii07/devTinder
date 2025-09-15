@@ -66,8 +66,14 @@
 // ]);
 
 const express = require("express");
+const User = require("./Models/user");
+const connectDB = require("./Config/database");
 // app 
 const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 // const {adminAuth, userAuth} = require("./Middlewares/auth");
 
@@ -113,23 +119,23 @@ const app = express();
 //     res.send("user Data sent");
 // });
 
-// app.get("/admin/getAllData",(req,res) => {
-//     // Logic of fetching all the data
-//     // Logic to check if the request is authorized
-//     // const token = req.body?.token;
-//     // const token = "2e3e324"
-//     // const isAdminAuthorized = token === "123";
+app.get("/admin/getAllData",(req,res) => {
+    // Logic of fetching all the data
+    // Logic to check if the request is authorized
+    // const token = req.body?.token;
+    // const token = "2e3e324"
+    const isAdminAuthorized = token === "123";
 
-//     // // console.log("Fetching all the data");
-//     // // res.send("All Data Sent");
+    // console.log("Fetching all the data");
+    // res.send("All Data Sent");
 
-//     // if(isAdminAuthorized) {
-//     //     res.send("All Data Sent");
-//     // } else {
-//     //     res.status(401).send("Unauthorized");
-//     // }
+    if(isAdminAuthorized) {
+        res.send("All Data Sent");
+    } else {
+        res.status(401).send("Unauthorized");
+    }
 
-// })
+})
 
 // app.get("/admin/DeleteUser",(req,res) => {
 //     // Logic to check if the request is authorized
@@ -138,29 +144,49 @@ const app = express();
 //     res.send("User Deleted Successfully");
 // })
 
-app.get("/getUserData", (req, res) => {
-    // always try to write your logic in try and catch block..
-    try{
+// app.get("/getUserData", (req, res) => {
+//     // always try to write your logic in try and catch block..
+//     try{
 
-    }
-    catch(err){
+//     }
+//     catch(err){
 
+//     }
+//     // Logic of DB call and get user data
+//     throw new Error("dvbsdef");
+//     res.send("User Data Sent");
+// })
+
+// // it matches all your routes
+// // err must be your first parameter..
+// // order of parameters matters..
+// app.use("/",(err,req,res,next) => {
+    
+//     if(err){
+//         res.status(500).send(err.message);
+//     }
+// });
+
+app.post("/signup",async (req,res) => {
+    
+    //creating a new instance of the User model  
+
+    console.log(req.body);
+    const user = new User(req.body);
+     console.log(user);
+    try {
+          await user.save();
+          res.send("User added SucessFully");
+    } catch (error) {
+        res.status(500).send("User not added", error.message);
     }
-    // Logic of DB call and get user data
-    throw new Error("dvbsdef");
-    res.send("User Data Sent");
+    
 })
 
-// it matches all your routes
-// err must be your first parameter..
-// order of parameters matters..
-app.use("/",(err,req,res,next) => {
-    
-    if(err){
-        res.status(500).send(err.message);
-    }
-});
-
-app.listen(3000, () => [ 
-    console.log("Server is successfully listening on port 3000...")
-]);
+connectDB()
+    .then(() => {
+        console.log("Database connection successful")
+        app.listen(3000, () => [ 
+    console.log("Server is successfully listening on port 3000...")]);
+    }) 
+    .catch((err) => console.log("Database connection failed"));
