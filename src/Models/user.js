@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = mongoose.Schema(
     {
@@ -20,7 +21,13 @@ const userSchema = mongoose.Schema(
         // lowercase: true means that the email should be lowercase
         lowercase: true,
         // trim: true means that the email should be trimmed
-        trim: true
+        trim: true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error("Email is invalid");
+            }
+          
+        }
     },
     password: {
         type: String,
@@ -43,6 +50,12 @@ const userSchema = mongoose.Schema(
     photoUrl: {
         type: String,
         default: "https://img.freepik.com/free-vector/user-circles-set_78370-4704.jpg?semt=ais_incoming&w=740&q=80",
+         validate(value){
+           if(!validator.isURL(value)){
+                throw new Error("Email is invalid");
+            }
+         }
+          
     },
     about:{
         type: String,
