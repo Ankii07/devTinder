@@ -4,22 +4,20 @@ const connectDB = require("./Config/database");
 const User = require("./Models/user");
 const { validateSignUpData } = require("./Utils/Validation"); // const validateSignUpData = require("./Utils/Validation");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const cookieParser= require("cookie-parser");
+const { userAuth } = require("./Middlewares/auth");
 // app 
 const app = express();
 // express.json() is a middleware that will parse the JSON data from the request body
 app.use(express.json());
 
-app.post("/signup", async (req, res) => {
-   
+// cookieParser is a middleware that will parse the cookie data from the request
+app.use(cookieParser());
 
+app.post("/signup", async (req, res) => {    //creating a new instance of the User model  
     
-
-    //creating a new instance of the User model  
-    console.log(req.body);
-    const user = new User(req.body);
-    console.log(user);
-    
-    const {password} = req.body;
+    const  {firstName, lastName, email, password} = req.body;
 
     try {
          // DO validation in the try catch block only.
@@ -27,6 +25,13 @@ app.post("/signup", async (req, res) => {
          validateSignUpData(req);
          // Encrypt the password..
          const passwordHash = await bcrypt.hash(password, 10);
+        //  console.log(passwordHash);
+         const user = new User({
+             firstName,
+             lastName,
+             email,
+             password: passwordHash
+         })
         await user.save();
         res.send("User added SucessFully");
     } catch (err) {
@@ -34,6 +39,72 @@ app.post("/signup", async (req, res) => {
         res.status(400).send("ERROR : ", err.message);
     }
 
+})
+
+app.post('/login', async (req, res) => {
+     try{
+      const {email, password} = req.body;
+     //check wether the user exists or not
+     const user = await User.findOne({email});  
+     if(!user){
+         return res.status(404).send("Invalid credentials");
+     }
+     //check wether the password is correct or not
+     //const isPassWord = await bcrypt.compare(password, user.password);
+     const isPassWord = await user.validatePassword(password);
+
+      if(isPassWord){
+        // create a JWT Token..
+         
+        // const token = jwt.sign({
+        //     // email: user.email,
+        //     _id: user._id
+        // }, "secret",{expiresIn: "1h"});
+         
+        const token = await user.getJWT();
+
+        // console.log(token);
+
+        // Add the token to the cookie and send back to the user..
+        //  res.cookie("token",token,{httpOnly: true, maxAge: 60*60*1000});
+         res.cookie("token",token);
+
+
+          res.send("Login Successfull");
+      }
+      else{
+          throw new Error("Invalid credentials");
+      }
+     }catch(err){
+         res.status(500).send("login failed", err.message);
+     }
+})
+
+app.get("/profile",userAuth,async(req, res) => {
+    // get the token from the cookie
+    // whenever you have to read a cookie you need a middleware which is express.cookieParser
+   try{
+    //  const cookie = req.cookies;
+    // console.log(cookie)
+    
+    // const {token} = cookie;
+    // if(!token){
+    //     throw new Error("Unauthorized");
+    // }
+    // validate the token..
+    // const decoded_Message = jwt.verify(token, "secret");
+    // console.log(decoded_Message);
+    // const {_id} = decoded_Message;
+    //   const user = await User.findOne({_id});
+    // const userName = 
+
+    const user = req.user;
+    console.log(user);
+    console.log("logged In user is " + user.firstName + " " + user.lastName);  
+    res.send(user);
+   }catch(err){
+       console.log(err);
+   }
 })
 
 // Always do async await for any db actions and use try catch..
@@ -117,6 +188,14 @@ app.patch("/user", async (req, res) => {
     }
 })
 
+// you can send the request only when you are logged in..
+app.post("/sendConnectionRequest",userAuth, async(req,res) => {
+    const user = req.user;
+    // sending a connection request
+    console.log("Sending a connection request");
+
+    res.send(user.firstName + " sent the connect request!");
+})
 
 
 // once your database connection established successfully then only start listening to the requests on server
