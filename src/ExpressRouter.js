@@ -21,11 +21,13 @@ app.use(cookieParser());
 const authRouter = require("./Routes/authRouter");
 const profileRouter = require("./Routes/Profile");
 const requestRouter = require("./Routes/request");
+const userRouter = require("./Routes/user");
 
 // express Routers
 app.use("/", authRouter);
-app.use("/",  profileRouter);
+app.use("/", profileRouter);
 app.use("/", requestRouter);
+app.use("/", userRouter);
 
 // once your database connection established successfully then only start listening to the requests on server
 connectDB()

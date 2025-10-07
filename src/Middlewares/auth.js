@@ -1,57 +1,29 @@
 const jwt = require("jsonwebtoken");
 const User = require("../Models/user");
 
-// const adminAuth = (req, res, next) => {
-//     console.log("Admin is getting checked !!");
-//     const token = "xyz";
-//     const isAdminAuthorized = token === "123";
-//     if(!isAdminAuthorized) {
-//         res.status(401).send("Unauthorized");
-//     } else {
-//         next();
-//     }
-// };
-
-// const userAuth = (req, res, next) => {
-//     console.log("User is getting checked !!");
-//     const token = "xyz";
-//     const isUserAuthorized = token === "123";
-//     if(!isUserAuthorized) {
-//         res.status(401).send("Unauthorized");
-//     } else {
-//         next();
-//     }
-// };
-
 const userAuth = async (req, res, next) => {
-    // Read the token from the cookies
-    // validate the token..
-    // find the user.. 
-
     try {
         const token = req.cookies.token;
         if (!token) {
-            throw new Error("Token is not Valid !!!!");
+            return res.status(401).json({ message: "Token is not valid!" });
         }
-        // validate the token
-        const decoded_Obj = await jwt.verify(token, "secret");
+        
+        // Validate the token
+        const decoded_Obj = jwt.verify(token, "secret");
         const { _id } = decoded_Obj;
+        
+        // Find the user
         const user = await User.findById(_id);
         if (!user) {
-            throw new Error("User Not Found");
+            return res.status(401).json({ message: "User not found" });
         }
-        else {
-            req.user = user;
-            next();
-        }
+        
+        req.user = user;
+        next(); // Proceed to the next middleware/route handler
 
     } catch (err) {
-        res.status(401).send("ERROR "+ err.message);
+        res.status(401).json({ message: "Authentication error: " + err.message });
     }
+};
 
-
-}
-
-
-// module.exports = { adminAuth, userAuth };
 module.exports = { userAuth };

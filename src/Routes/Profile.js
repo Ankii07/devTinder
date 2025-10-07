@@ -1,28 +1,15 @@
 const express = require("express");
 const { userAuth } = require("../Middlewares/auth");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const { validateEditProfileData } = require("../Utils/Validation");
 
 const profileRouter = express.Router();
 
-profileRouter.get("/profile",userAuth,async(req, res) => {
+profileRouter.get("/profile/view",userAuth,async(req, res) => {
     // get the token from the cookie
     // whenever you have to read a cookie you need a middleware which is express.cookieParser
    try{
-    //  const cookie = req.cookies;
-    // console.log(cookie)
-    
-    // const {token} = cookie;
-    // if(!token){
-    //     throw new Error("Unauthorized");
-    // }
-    // validate the token..
-    // const decoded_Message = jwt.verify(token, "secret");
-    // console.log(decoded_Message);
-    // const {_id} = decoded_Message;
-    //   const user = await User.findOne({_id});
-    // const userName = 
-
     const user = req.user;
     console.log(user);
     console.log("logged In user is " + user.firstName + " " + user.lastName);  
@@ -30,6 +17,22 @@ profileRouter.get("/profile",userAuth,async(req, res) => {
    }catch(err){
        console.log(err);
    }
+})
+
+profileRouter.patch("/profile/edit",userAuth, async(req,res) =>{
+    try{
+      if(!validateEditProfileData(req)){
+        throw new Error("Invalid Edit Request");
+      };
+      const LoggedInUser = req.user;
+    // updating the saved user details
+      Object.keys(req.body).forEach((key) => (LoggedInUser[key] = req.body[key]));
+      console.log("Logged In User",LoggedInUser);
+      res.send("Updatd SucessFully");
+    }catch(err){
+      res.status(400).send("ERROR: " + err.message);
+    }
+     
 })
 
 module.exports = profileRouter;

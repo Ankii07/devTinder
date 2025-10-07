@@ -36,6 +36,9 @@ authRouter.post("/signup", async (req, res) => {    //creating a new instance of
 authRouter.post('/login', async (req, res) => {
      try{
       const {email, password} = req.body;
+
+      console.log(email);
+      console.log(password);
      //check wether the user exists or not
      const user = await User.findOne({email});  
      if(!user){
@@ -60,6 +63,13 @@ authRouter.post('/login', async (req, res) => {
      }catch(err){
          res.status(500).send("login failed", err.message);
      }
+})
+
+authRouter.post("/logout", (req, res) => {
+    res.cookie("token", null, {
+        expires: new Date(0)
+    });
+    res.send("Logout Successfull");
 })
 
 module.exports = authRouter;

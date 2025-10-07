@@ -8,6 +8,8 @@ const userSchema = mongoose.Schema(
         firstName: {
             type: String,
             required: true,
+            index: true,
+            // minLength: 4 means that the length of the first name should be at least 4
             minLength: 4,
             // maxLength: 20 means that the length of the first name should be between 4 and 20
             maxLength: 20,
@@ -18,6 +20,9 @@ const userSchema = mongoose.Schema(
         email: {
             type: String,
             required: true,
+            // indexing is a way to improve the performance of the database
+            // whenever we are searching for a user by email it will be faster
+            // if it is unique then it is by default indexed
             // unique: true means that the email should be unique
             unique: true,
             // lowercase: true means that the email should be lowercase
@@ -43,8 +48,19 @@ const userSchema = mongoose.Schema(
         },
         gender: {
             type: String,
+            enum:{
+               values: ["male", "female", "other"],
+                message: `{VALUE} is not supported`
+            },
+            /**
+             * Validate the gender field
+             * @param {string} value - the value of the gender field
+             * @throws {Error} - if the value is not valid
+             */
             validate(value) {
+                // Check if the value is not equal to "male", "female" or "other"
                 if (value !== "male" && value !== "female" && value !== "other") {
+                    // Throw an error if the value is not valid
                     throw new Error("Gender should be male, female or other");
                 }
             }
@@ -87,6 +103,8 @@ const userSchema = mongoose.Schema(
     timestamps: true
 });
 
+userSchema.index({firstName: 1, lastName: 1});
+
 // this doesn't work in arrow functions
 userSchema.methods.getJWT = async function () {
     const user = this;
@@ -104,6 +122,6 @@ userSchema.methods.validatePassword = async function (passwordInputByUser) {
     return isPassWord;
 }
 
-const User = mongoose.model("user", userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;
